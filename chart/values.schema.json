@@ -192,7 +192,8 @@
                         },
                         "pullPolicy": {
                             "description": "The airflow image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -216,7 +217,8 @@
                         },
                         "pullPolicy": {
                             "description": "The pod_template image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -240,7 +242,8 @@
                         },
                         "pullPolicy": {
                             "description": "The flower image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -258,7 +261,8 @@
                         },
                         "pullPolicy": {
                             "description": "The statsd image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -276,7 +280,8 @@
                         },
                         "pullPolicy": {
                             "description": "The redis image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -294,7 +299,8 @@
                         },
                         "pullPolicy": {
                             "description": "The PgBouncer image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -312,7 +318,8 @@
                         },
                         "pullPolicy": {
                             "description": "The PgBouncer exporter image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 },
@@ -330,7 +337,8 @@
                         },
                         "pullPolicy": {
                             "description": "The gitSync image pull policy.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["Always", "Never", "IfNotPresent"]
                         }
                     }
                 }
@@ -552,6 +560,10 @@
                     "description": "Number of airflow celery workers in StatefulSet.",
                     "type": "integer"
                 },
+                "updateStrategy": {
+                    "description": "Specifies the strategy used to replace old Pods by new ones.",
+                    "type": "object"
+                },
                 "keda": {
                     "description": "KEDA configuration.",
                     "type": "object",
@@ -632,6 +644,10 @@
                   "description": "Annotations to add to the worker kubernetes service account.",
                   "type": "object"
                 },
+                "extraContainers": {
+                    "description": "Launch additional containers into workers.",
+                    "type": "array"
+                },
                 "extraVolumes": {
                     "description": "Mount additional volumes into workers.",
                     "type": "array"
@@ -653,6 +669,10 @@
                 },
                 "tolerations": {
                     "description": "Select certain nodes for airflow pods.",
+                    "type": "array"
+                },
+                "hostAliases": {
+                    "description": "Specify hostAliases for workers.",
                     "type": "array"
                 }
             }
@@ -705,6 +725,10 @@
                 "serviceAccountAnnotations": {
                   "description": "Annotations to add to the scheduler kubernetes service account.",
                   "type": "object"
+                },
+                "extraContainers": {
+                    "description": "Launch additional containers into scheduler.",
+                    "type": "array"
                 },
                 "extraVolumes": {
                     "description": "Mount additional volumes into scheduler.",
@@ -831,6 +855,10 @@
                             "type": "string"
                         }
                     }
+                },
+                "extraContainers": {
+                    "description": "Launch additional containers into webserver.",
+                    "type": "array"
                 },
                 "extraVolumes": {
                     "description": "Mount additional volumes into webserver.",
@@ -1370,7 +1398,8 @@
                         },
                         "accessMode": {
                             "description": "Access mode of the persistent volume.",
-                            "type": "string"
+                            "type": "string",
+                            "enum": ["ReadWriteOnce", "ReadOnlyMany", "ReadWriteMany"]
                         },
                         "existingClaim": {
                             "description": "The name of an existing PVC to use.",
@@ -1433,6 +1462,10 @@
                         "uid": {
                             "description": "Git sync container run as user parameter.",
                             "type": "integer"
+                        },
+                        "extraVolumeMounts": {
+                            "description": "Mount additional volumes into git sync container.",
+                            "type": "array"
                         },
                         "credentialsSecret": {
                             "description": "TODO",

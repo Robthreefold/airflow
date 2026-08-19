@@ -276,6 +276,12 @@ The following tables lists the configurable parameters of the Airflow chart and 
    * - ``workers.tolerations``
      - Toleration labels for pod assignment
      - ``1``
+   * - ``workers.hostAliases``
+     - HostAliases to use in Celery workers
+     - ``[]``
+   * - ``workers.updateStrategy``
+     - The strategy used to replace old Pods by new ones.
+     - ``{"rollingUpdate": {"maxSurge": "100%", "maxUnavailable": "50%"}``
    * - ``scheduler.podDisruptionBudget.enabled``
      - Enable PDB on Airflow scheduler
      - ``1``

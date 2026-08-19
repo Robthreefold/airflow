@@ -924,8 +924,12 @@ class SchedulerJob(BaseJob):  # pylint: disable=too-many-instance-attributes
             .filter(not_(DM.is_paused))
             .filter(TI.state == State.SCHEDULED)
             .options(selectinload('dag_model'))
-            .limit(max_tis)
         )
+        starved_pools = [pool_name for pool_name, stats in pools.items() if stats['open'] <= 0]
+        if starved_pools:
+            query = query.filter(not_(TI.pool.in_(starved_pools)))
+
+        query = query.limit(max_tis)
 
         task_instances_to_examine: List[TI] = with_row_locks(
             query,
@@ -1612,7 +1616,7 @@ class SchedulerJob(BaseJob):  # pylint: disable=too-many-instance-attributes
             # create a new one. This is so that in the next Scheduling loop we try to create new runs
             # instead of falling in a loop of Integrity Error.
             if (dag.dag_id, dag_model.next_dagrun) not in active_dagruns:
-                dag.create_dagrun(
+                run = dag.create_dagrun(
                     run_type=DagRunType.SCHEDULED,
                     execution_date=dag_model.next_dagrun,
                     start_date=timezone.utcnow(),
@@ -1622,6 +1626,14 @@ class SchedulerJob(BaseJob):  # pylint: disable=too-many-instance-attributes
                     dag_hash=dag_hash,
                     creating_job_id=self.id,
                 )
+
+                expected_start_date = dag.following_schedule(run.execution_date)
+                if expected_start_date:
+                    schedule_delay = run.start_date - expected_start_date
+                    Stats.timing(
+                        f'dagrun.schedule_delay.{dag.dag_id}',
+                        schedule_delay,
+                    )
 
         self._update_dag_next_dagruns(dag_models, session)
 

@@ -43,9 +43,9 @@ class CheckJobRunning(Enum):
     WaitForRun - wait for job to finish and then continue with new job
     """
 
-    IgnoreJob = 1
-    FinishIfRunning = 2
-    WaitForRun = 3
+    IgnoreJob = 1  # pylint: disable=invalid-name
+    FinishIfRunning = 2  # pylint: disable=invalid-name
+    WaitForRun = 3  # pylint: disable=invalid-name
 
 
 class DataflowConfiguration:
@@ -492,6 +492,7 @@ class DataflowTemplatedJobStartOperator(BaseOperator):
     :type template: str
     :param job_name: The 'jobName' to use when executing the DataFlow template
         (templated).
+    :type job_name: Optional[str]
     :param options: Map of job runtime environment options.
         It will update environment argument if passed.
 
@@ -529,7 +530,7 @@ class DataflowTemplatedJobStartOperator(BaseOperator):
         Service Account Token Creator IAM role to the directly preceding identity, with first
         account from the list granting this role to the originating account (templated).
     :type impersonation_chain: Union[str, Sequence[str]]
-    :type environment: Optional, Map of job runtime environment options.
+    :param environment: Optional, Map of job runtime environment options.
 
         .. seealso::
             For more information on possible configurations, look at the API documentation
@@ -849,7 +850,7 @@ class DataflowStartSqlJobOperator(BaseOperator):
         <gcloud beta dataflow sql query>`__
         command reference
 
-    :param options: dict
+    :type options: dict
     :param location: The location of the Dataflow job (for example europe-west1)
     :type location: str
     :param project_id: The ID of the GCP project that owns the job.

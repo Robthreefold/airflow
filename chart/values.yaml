@@ -299,6 +299,11 @@ kerberos:
 workers:
   # Number of airflow celery workers in StatefulSet
   replicas: 1
+  updateStrategy:
+    strategy:
+      rollingUpdate:
+        maxSurge: "100%"
+        maxUnavailable: "50%"
 
   # Allow KEDA autoscaling.
   # Persistence.enabled must be set to false to use KEDA.
@@ -355,6 +360,10 @@ workers:
   safeToEvict: true
   # Annotations to add to worker kubernetes service account.
   serviceAccountAnnotations: {}
+
+  # Launch additional containers into worker.
+  extraContainers: []
+
   # Mount additional volumes into worker.
   extraVolumes: []
   extraVolumeMounts: []
@@ -363,6 +372,16 @@ workers:
   nodeSelector: {}
   affinity: {}
   tolerations: []
+  # hostAliases to use in worker pods.
+  # See:
+  # https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+  hostAliases: []
+  # - ip: "127.0.0.2"
+  #   hostnames:
+  #   - "test.hostname.one"
+  # - ip: "127.0.0.3"
+  #   hostnames:
+  #   - "test.hostname.two"
 
 # Airflow scheduler settings
 scheduler:
@@ -395,6 +414,9 @@ scheduler:
 
   # Annotations to add to scheduler kubernetes service account.
   serviceAccountAnnotations: {}
+
+  # Launch additional containers into scheduler.
+  extraContainers: []
 
   # Mount additional volumes into scheduler.
   extraVolumes: []
@@ -443,6 +465,9 @@ webserver:
     firstName: admin
     lastName: user
     password: admin
+
+  # Launch additional containers into webserver.
+  extraContainers: []
 
   # Mount additional volumes into webserver.
   extraVolumes: []
@@ -718,11 +743,12 @@ config:
     statsd_port: 9125
     statsd_prefix: airflow
     statsd_host: '{{ printf "%s-statsd" .Release.Name }}'
+  operators:
+    default_queue: celery
   webserver:
     enable_proxy_fix: 'True'
     rbac: 'True'
   celery:
-    default_queue: celery
     worker_concurrency: 16
   scheduler:
     scheduler_heartbeat_sec: 5
@@ -828,3 +854,4 @@ dags:
     wait: 60
     containerName: git-sync
     uid: 65533
+    extraVolumeMounts: []

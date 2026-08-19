@@ -79,6 +79,7 @@ serialized_simple_dag_ground_truth = {
         },
         "is_paused_upon_creation": False,
         "_dag_id": "simple_dag",
+        "doc_md": "### DAG Tutorial Documentation",
         "fileloc": None,
         "tasks": [
             {
@@ -110,6 +111,7 @@ serialized_simple_dag_ground_truth = {
                         }
                     },
                 },
+                "doc_md": "### Task Tutorial Documentation",
             },
             {
                 "task_id": "custom_task",
@@ -170,6 +172,7 @@ def make_simple_dag():
         start_date=datetime(2019, 8, 1),
         is_paused_upon_creation=False,
         access_control={"test_role": {permissions.ACTION_CAN_READ, permissions.ACTION_CAN_EDIT}},
+        doc_md="### DAG Tutorial Documentation",
     ) as dag:
         CustomOperator(task_id='custom_task')
         BashOperator(
@@ -177,6 +180,7 @@ def make_simple_dag():
             bash_command='echo {{ task.task_id }}',
             owner='airflow',
             executor_config={"pod_override": executor_config_pod},
+            doc_md="### Task Tutorial Documentation",
         )
         return {'simple_dag': dag}
 
@@ -353,9 +357,10 @@ class TestStringifiedDAGs(unittest.TestCase):
             "_task_group",
         }
         for field in fields_to_check:
-            assert getattr(serialized_dag, field) == getattr(
-                dag, field
-            ), f'{dag.dag_id}.{field} does not match'
+            dag_field = getattr(dag, field)
+            if isinstance(dag_field, list):
+                dag_field = sorted(dag_field)
+            assert getattr(serialized_dag, field) == dag_field, f'{dag.dag_id}.{field} does not match'
 
         if dag.default_args:
             for k, v in dag.default_args.items():
@@ -852,6 +857,11 @@ class TestStringifiedDAGs(unittest.TestCase):
             '_upstream_task_ids': set(),
             'depends_on_past': False,
             'do_xcom_push': True,
+            'doc': None,
+            'doc_json': None,
+            'doc_md': None,
+            'doc_rst': None,
+            'doc_yaml': None,
             'email': None,
             'email_on_failure': True,
             'email_on_retry': True,
@@ -1026,6 +1036,33 @@ class TestStringifiedDAGs(unittest.TestCase):
         deserialized_dag = SerializedDAG.from_dict(serialized_dag)
 
         assert deserialized_dag.has_on_failure_callback is expected_value
+
+    @parameterized.expand(
+        [
+            (
+                ['task_1', 'task_5', 'task_2', 'task_4'],
+                ['task_1', 'task_2', 'task_4', 'task_5'],
+            ),
+            (
+                {'task_1', 'task_5', 'task_2', 'task_4'},
+                ['task_1', 'task_2', 'task_4', 'task_5'],
+            ),
+            (
+                ('task_1', 'task_5', 'task_2', 'task_4'),
+                ['task_1', 'task_2', 'task_4', 'task_5'],
+            ),
+            (
+                {"task3": "test3", "task2": "test2", "task1": "test1"},
+                {"task1": "test1", "task2": "test2", "task3": "test3"},
+            ),
+        ]
+    )
+    def test_serialized_objects_are_sorted(self, object_to_serialized, expected_output):
+        """Test Serialized Lists, Sets and Tuples are sorted"""
+        serialized_obj = SerializedDAG._serialize(object_to_serialized)
+        if isinstance(serialized_obj, dict) and "__type" in serialized_obj:
+            serialized_obj = serialized_obj["__var"]
+        assert serialized_obj == expected_output
 
 
 def test_kubernetes_optional():

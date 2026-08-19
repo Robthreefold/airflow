@@ -282,6 +282,21 @@ class BaseOperator(Operator, LoggingMixin, TaskMixin, metaclass=BaseOperatorMeta
     :param do_xcom_push: if True, an XCom is pushed containing the Operator's
         result
     :type do_xcom_push: bool
+    :param doc: Add documentation or notes to your Task objects that is visible in
+        Task Instance details View in the Webserver
+    :type doc: str
+    :param doc_md: Add documentation (in Markdown format) or notes to your Task objects
+        that is visible in Task Instance details View in the Webserver
+    :type doc_md: str
+    :param doc_rst: Add documentation (in RST format) or notes to your Task objects
+        that is visible in Task Instance details View in the Webserver
+    :type doc_rst: str
+    :param doc_json: Add documentation (in JSON format) or notes to your Task objects
+        that is visible in Task Instance details View in the Webserver
+    :type doc_json: str
+    :param doc_yaml: Add documentation (in YAML format) or notes to your Task objects
+        that is visible in Task Instance details View in the Webserver
+    :type doc_yaml: str
     """
 
     # For derived classes to define which fields will get jinjaified
@@ -367,7 +382,7 @@ class BaseOperator(Operator, LoggingMixin, TaskMixin, metaclass=BaseOperatorMeta
         default_args: Optional[Dict] = None,  # pylint: disable=unused-argument
         priority_weight: int = 1,
         weight_rule: str = WeightRule.DOWNSTREAM,
-        queue: str = conf.get('celery', 'default_queue'),
+        queue: str = conf.get('operators', 'default_queue'),
         pool: Optional[str] = None,
         pool_slots: int = 1,
         sla: Optional[timedelta] = None,
@@ -385,6 +400,11 @@ class BaseOperator(Operator, LoggingMixin, TaskMixin, metaclass=BaseOperatorMeta
         inlets: Optional[Any] = None,
         outlets: Optional[Any] = None,
         task_group: Optional["TaskGroup"] = None,
+        doc: Optional[str] = None,
+        doc_md: Optional[str] = None,
+        doc_json: Optional[str] = None,
+        doc_yaml: Optional[str] = None,
+        doc_rst: Optional[str] = None,
         **kwargs,
     ):
         from airflow.models.dag import DagContext
@@ -489,6 +509,12 @@ class BaseOperator(Operator, LoggingMixin, TaskMixin, metaclass=BaseOperatorMeta
         self.task_concurrency = task_concurrency
         self.executor_config = executor_config or {}
         self.do_xcom_push = do_xcom_push
+
+        self.doc_md = doc_md
+        self.doc_json = doc_json
+        self.doc_yaml = doc_yaml
+        self.doc_rst = doc_rst
+        self.doc = doc
 
         # Private attributes
         self._upstream_task_ids: Set[str] = set()
@@ -1497,7 +1523,7 @@ def cross_downstream(
 class BaseOperatorLink(metaclass=ABCMeta):
     """Abstract base class that defines how we get an operator link."""
 
-    operators: ClassVar[List[Type[BaseOperator]]] = []
+    operators: ClassVar[List[Type[BaseOperator]]] = []  # pylint: disable=invalid-name
     """
     This property will be used by Airflow Plugins to find the Operators to which you want
     to assign this Operator Link
